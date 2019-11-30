@@ -9,7 +9,7 @@ type WindowPreferences struct {
 	Name        string
 }
 
-// WindowPreference represent
+// WindowPreference represents a singular application window and it's desired position keyed by a Name Regex.  An exclusion name regex can be used for more fine-grained filtering
 type WindowPreference struct {
 	NameRegex         string
 	NameExlusionRegex string
