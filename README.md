@@ -6,8 +6,6 @@ Painless Window Layout Management
 
 Stemming from frustrations with current window-snapping utilities in Windows when using an ultrawide monitor, Paneless was written to allow pixel perfect management of semi-complex window arrangements.
 
-The application is a small utility which lives in the Windows Taskbar with a small context menu used to apply pre-saved window arrangements.
-
 # Defining Window Arrangements
 
 Window arrangements are defined using a JSON file.  Multiple arrangments can be specified in the file and can be switched from the taskbar when the application is running.  To achieve the screenshot above, the JSON file would like like...

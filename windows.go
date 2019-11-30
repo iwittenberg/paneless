@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"regexp"
 
 	"github.com/JamesHovious/w32"
@@ -46,8 +45,6 @@ func GetCurrentWindowPositions() *WindowPreferences {
 	w32.EnumChildWindows(0, func(hwnd w32.HWND, lparam w32.LPARAM) w32.LRESULT {
 		windowTitle := w32.GetWindowText(hwnd)
 		if len(windowTitle) > 0 && windowTitle != "Default IME" && windowTitle != "MSCTFIME UI" {
-			fmt.Println(windowTitle)
-
 			windowRect := w32.GetWindowRect(hwnd)
 
 			preference := WindowPreference{

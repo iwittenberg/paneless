@@ -6,10 +6,11 @@ import (
 
 	"github.com/getlantern/systray"
 	"github.com/iwittenberg/paneless/icon"
+	"github.com/skratchdot/open-golang/open"
 )
 
 func main() {
-	systray.Run(onReady)
+	systray.Run(onReady, nil)
 }
 
 func onReady() {
@@ -22,46 +23,35 @@ func onReady() {
 	systray.SetTitle("Rearrange")
 	systray.SetTooltip("Better Rearrangement Tool")
 
-	menuItems := make([]menuItemToName, len(*preferences))
-	for i, preference := range *preferences {
-		menuItems[i] = menuItemToName{
-			systray.AddMenuItem(preference.Name, "Rearrange the windows according to this preference"),
-			preference.Name,
-		}
+	for _, preference := range *preferences {
+		item := systray.AddMenuItem(preference.Name, "Rearrange the windows according to this preference")
+
+		go func(item *systray.MenuItem, preferences WindowPreferences) {
+			for {
+				<-item.ClickedCh
+				SetWindowPositions(preferences)
+			}
+		}(item, preference)
 	}
-	current := systray.AddMenuItem("Get Current", "Get the current positions of all windows")
+
+	systray.AddSeparator()
+	current := systray.AddMenuItem("Get Snapshop", "Get a snapshop of the current positions of all windows")
+	file := systray.AddMenuItem("Open Preferences", "Open the current preferences file")
 	quit := systray.AddMenuItem("Quit", "Quit the whole app")
 
-	for _, item := range menuItems {
-		go func(menuItem menuItemToName) {
-			for {
-				<-menuItem.item.ClickedCh
-
-				var preference WindowPreferences
-				for _, prefs := range *preferences {
-					if menuItem.name == prefs.Name {
-						preference = prefs
-					}
-				}
-
-				SetWindowPositions(preference)
-			}
-		}(item)
-	}
-
 	go func() {
-		select {
-		case <-current.ClickedCh:
-			currentPreferences := []WindowPreferences{*GetCurrentWindowPositions()}
-			ToJSONFile(&currentPreferences, "currentPreferences.json")
-		case <-quit.ClickedCh:
-			systray.Quit()
-			os.Exit(0)
+		for {
+			select {
+			case <-file.ClickedCh:
+				open.Start("preferences.json")
+			case <-current.ClickedCh:
+				snapshot := []WindowPreferences{*GetCurrentWindowPositions()}
+				ToJSONFile(&snapshot, "snapshot.json")
+				open.Start("snapshot.json")
+			case <-quit.ClickedCh:
+				systray.Quit()
+				os.Exit(0)
+			}
 		}
 	}()
-}
-
-type menuItemToName struct {
-	item *systray.MenuItem
-	name string
 }
