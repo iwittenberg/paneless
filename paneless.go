@@ -6,7 +6,6 @@ import (
 
 	"github.com/getlantern/systray"
 	"github.com/iwittenberg/paneless/icon"
-	"github.com/skratchdot/open-golang/open"
 )
 
 func main() {
@@ -43,11 +42,11 @@ func onReady() {
 		for {
 			select {
 			case <-file.ClickedCh:
-				open.Start("preferences.json")
+				openFile("preferences.json")
 			case <-current.ClickedCh:
 				snapshot := []WindowPreferences{*GetCurrentWindowPositions()}
 				ToJSONFile(&snapshot, "snapshot.json")
-				open.Start("snapshot.json")
+				openFile("snapshot.json")
 			case <-quit.ClickedCh:
 				systray.Quit()
 				os.Exit(0)

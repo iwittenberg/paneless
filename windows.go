@@ -1,9 +1,17 @@
 package main
 
 import (
+	"os"
+	"os/exec"
+	"path/filepath"
 	"regexp"
 
 	"github.com/JamesHovious/w32"
+)
+
+var (
+	cmd      = "url.dll,FileProtocolHandler"
+	runDll32 = filepath.Join(os.Getenv("SYSTEMROOT"), "System32", "rundll32.exe")
 )
 
 func setWindowPosition(hwnd w32.HWND, preference WindowPreference) {
@@ -15,6 +23,10 @@ func setWindowPosition(hwnd w32.HWND, preference WindowPreference) {
 		int(preference.Cy),
 		true,
 	)
+}
+
+func openFile(file string) {
+	exec.Command(runDll32, cmd, file).Start()
 }
 
 // SetWindowPositions applies the input WindowPreferences to the currently running windows
