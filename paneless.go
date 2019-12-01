@@ -28,9 +28,9 @@ func onReady() {
 			for {
 				i := systray.AddMenuItem(p.Name, "Rearrange the windows according to this preference")
 				<-i.ClickedCh
-				SetWindowPositions(p)
+				p.SetPositions()
 			}
-		}
+		}()
 	}
 
 	systray.AddSeparator()
