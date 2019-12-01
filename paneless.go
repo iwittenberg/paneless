@@ -13,7 +13,7 @@ func main() {
 }
 
 func onReady() {
-	preferences, err := FromJSONFile("preferences.json")
+	arrangements, err := NewFromFile("preferences.json")
 	if err != nil {
 		log.Fatal("Couldnt read from file", err)
 	}
@@ -22,15 +22,14 @@ func onReady() {
 	systray.SetTitle("Rearrange")
 	systray.SetTooltip("Better Rearrangement Tool")
 
-	for _, preference := range *preferences {
-		item := systray.AddMenuItem(preference.Name, "Rearrange the windows according to this preference")
-
-		go func(item *systray.MenuItem, preferences WindowPreferences) {
+	for _, a := range *arrangements {
+		item := systray.AddMenuItem(a.Name, "Rearrange the windows according to this preference")
+		go func(a Arrangement) {
 			for {
 				<-item.ClickedCh
-				SetWindowPositions(preferences)
+				a.Apply()
 			}
-		}(item, preference)
+		}(a)
 	}
 
 	systray.AddSeparator()
@@ -44,8 +43,8 @@ func onReady() {
 			case <-file.ClickedCh:
 				openFile("preferences.json")
 			case <-current.ClickedCh:
-				snapshot := []WindowPreferences{*GetCurrentWindowPositions()}
-				ToJSONFile(&snapshot, "snapshot.json")
+				s := Arrangements{*GetCurrentWindowPositions()}
+				s.ToJSONFile("snapshot.json")
 				openFile("snapshot.json")
 			case <-quit.ClickedCh:
 				systray.Quit()

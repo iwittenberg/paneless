@@ -14,13 +14,13 @@ var (
 	runDll32 = filepath.Join(os.Getenv("SYSTEMROOT"), "System32", "rundll32.exe")
 )
 
-func setWindowPosition(hwnd w32.HWND, preference WindowPreference) {
+func setPosition(hwnd w32.HWND, w Window) {
 	w32.MoveWindow(
 		hwnd,
-		int(preference.X),
-		int(preference.Y),
-		int(preference.Cx),
-		int(preference.Cy),
+		int(w.X),
+		int(w.Y),
+		int(w.Cx),
+		int(w.Cy),
 		true,
 	)
 }
@@ -29,20 +29,20 @@ func openFile(file string) {
 	exec.Command(runDll32, cmd, file).Start()
 }
 
-// SetWindowPositions applies the input WindowPreferences to the currently running windows
-func SetWindowPositions(preference WindowPreferences) {
+// Apply repositions the currently running windows according to the input arrangement
+func (a *Arrangement) Apply() {
 	w32.EnumChildWindows(0, func(hwnd w32.HWND, lparam w32.LPARAM) w32.LRESULT {
-		windowTitle := w32.GetWindowText(hwnd)
-		for _, pref := range preference.Preferences {
-			match, _ := regexp.MatchString(pref.NameRegex, windowTitle)
+		title := w32.GetWindowText(hwnd)
+		for _, w := range a.Windows {
+			match, _ := regexp.MatchString(w.NameRegex, title)
 
 			negativeMatch := false
-			if len(pref.NameExlusionRegex) > 0 {
-				negativeMatch, _ = regexp.MatchString(pref.NameExlusionRegex, windowTitle)
+			if len(w.NameExlusionRegex) > 0 {
+				negativeMatch, _ = regexp.MatchString(w.NameExlusionRegex, title)
 			}
 
 			if match && !negativeMatch {
-				setWindowPosition(hwnd, pref)
+				setPosition(hwnd, w)
 			}
 		}
 		return 1
@@ -50,29 +50,29 @@ func SetWindowPositions(preference WindowPreferences) {
 }
 
 // GetCurrentWindowPositions returns a pointer to a WindowPreferences struct representing the current layout of all windows.
-func GetCurrentWindowPositions() *WindowPreferences {
-	preferences := new(WindowPreferences)
-	preferences.Name = "current"
-	preferences.Preferences = make([]WindowPreference, 0, 10)
+func GetCurrentWindowPositions() *Arrangement {
+	a := new(Arrangement)
+	a.Name = "current"
+	a.Windows = make([]Window, 0, 10)
 	w32.EnumChildWindows(0, func(hwnd w32.HWND, lparam w32.LPARAM) w32.LRESULT {
-		windowTitle := w32.GetWindowText(hwnd)
-		if len(windowTitle) > 0 && windowTitle != "Default IME" && windowTitle != "MSCTFIME UI" {
-			windowRect := w32.GetWindowRect(hwnd)
+		title := w32.GetWindowText(hwnd)
+		if len(title) > 0 && title != "Default IME" && title != "MSCTFIME UI" {
+			r := w32.GetWindowRect(hwnd)
 
-			preference := WindowPreference{
-				NameRegex:         windowTitle,
+			w := Window{
+				NameRegex:         title,
 				NameExlusionRegex: "",
-				X:                 windowRect.Left,
-				Y:                 windowRect.Top,
-				Cx:                windowRect.Right - windowRect.Left,
-				Cy:                windowRect.Bottom - windowRect.Top,
+				X:                 r.Left,
+				Y:                 r.Top,
+				Cx:                r.Right - r.Left,
+				Cy:                r.Bottom - r.Top,
 			}
 
-			preferences.Preferences = append(preferences.Preferences, preference)
+			a.Windows = append(a.Windows, w)
 		}
 
 		return 1
 	}, 0)
 
-	return preferences
+	return a
 }
