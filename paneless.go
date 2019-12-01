@@ -6,6 +6,7 @@ import (
 
 	"github.com/getlantern/systray"
 	"github.com/iwittenberg/paneless/icon"
+	"github.com/skratchdot/open-golang/open"
 )
 
 func main() {
@@ -13,24 +14,23 @@ func main() {
 }
 
 func onReady() {
-	preferences, err := FromJSONFile("preferences.json")
-	if err != nil {
-		log.Fatal("Couldnt read from file", err)
+	var preferences WindowPreferencesList
+	if err := preferences.FromFile("preferences.json"); err != nil {
+		log.Fatalf("failed to read preferences from preferences.json: %s", err)
 	}
 
 	systray.SetIcon(icon.Data)
 	systray.SetTitle("Rearrange")
 	systray.SetTooltip("Better Rearrangement Tool")
 
-	for _, preference := range *preferences {
-		item := systray.AddMenuItem(preference.Name, "Rearrange the windows according to this preference")
-
-		go func(item *systray.MenuItem, preferences WindowPreferences) {
+	for _, p := range preferences {
+		go func() {
 			for {
-				<-item.ClickedCh
-				SetWindowPositions(preferences)
+				i := systray.AddMenuItem(p.Name, "Rearrange the windows according to this preference")
+				<-i.ClickedCh
+				SetWindowPositions(p)
 			}
-		}(item, preference)
+		}
 	}
 
 	systray.AddSeparator()
@@ -38,15 +38,17 @@ func onReady() {
 	file := systray.AddMenuItem("Open Preferences", "Open the current preferences file")
 	quit := systray.AddMenuItem("Quit", "Quit the whole app")
 
+	// is this goroutine necessary? might be due to systray, but generally a go service will exit
+	// if the main goroutine ends, even if it's spawned child routines
 	go func() {
 		for {
 			select {
 			case <-file.ClickedCh:
-				openFile("preferences.json")
+				open.Start("preferences.json")
 			case <-current.ClickedCh:
-				snapshot := []WindowPreferences{*GetCurrentWindowPositions()}
-				ToJSONFile(&snapshot, "snapshot.json")
-				openFile("snapshot.json")
+				s := WindowPreferencesList{*GetCurrentWindowPositions()}
+				s.ToFile("snapshot.json")
+				open.Start("snapshot.json")
 			case <-quit.ClickedCh:
 				systray.Quit()
 				os.Exit(0)

@@ -19,9 +19,12 @@ type WindowPreference struct {
 	Cy                int32
 }
 
-// ToJSONFile writes a *[]WindowPreferences to the input file name, creating it if it doesn't exist.
-func ToJSONFile(preferences *[]WindowPreferences, filename string) error {
-	data, err := json.MarshalIndent(preferences, "", "    ")
+// WindowPreferencesList list of window prefs
+type WindowPreferencesList []WindowPreferences
+
+// ToFile writes a WindowPreferencesList to the input file name in json, creating it if it doesn't exist.
+func (w *WindowPreferencesList) ToFile(filename string) error {
+	data, err := json.MarshalIndent(w, "", "    ")
 	if err != nil {
 		return err
 	}
@@ -34,18 +37,17 @@ func ToJSONFile(preferences *[]WindowPreferences, filename string) error {
 	return nil
 }
 
-// FromJSONFile reads the input file and attempts to unmarshal the contents into a *[]WindowPreferences.
-func FromJSONFile(filename string) (*[]WindowPreferences, error) {
+// FromFile reads the input file from json and attempts to unmarshal the contents into itself.
+func (w *WindowPreferencesList) FromFile(filename string) error {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	var windowPreferences []WindowPreferences
-	err = json.Unmarshal(data, &windowPreferences)
+	err = json.Unmarshal(data, w)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return &windowPreferences, nil
+	return nil
 }
