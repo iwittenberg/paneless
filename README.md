@@ -14,7 +14,7 @@ Window arrangements are defined using a JSON file.  Multiple arrangments can be 
 [
     {
         "name": "Watching Twitch - App",
-        "preferences": [
+        "windows": [
             {
                 "NameRegex": "Twitch",
                 "NameExlusionRegex": "",
@@ -58,7 +58,7 @@ Windows are distinguished via their title bar name and can be found using a rege
 [
     {
         "name": "Watching Twitch - Web Player",
-        "preferences": [
+        "windows": [
             {
                 "NameRegex": "Twitch - Google Chrome",
                 "NameExlusionRegex": "",
