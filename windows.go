@@ -37,8 +37,8 @@ func (a *Arrangement) Apply() {
 			match, _ := regexp.MatchString(w.NameRegex, title)
 
 			negativeMatch := false
-			if len(w.NameExlusionRegex) > 0 {
-				negativeMatch, _ = regexp.MatchString(w.NameExlusionRegex, title)
+			if len(w.NameExclusionRegex) > 0 {
+				negativeMatch, _ = regexp.MatchString(w.NameExclusionRegex, title)
 			}
 
 			if match && !negativeMatch {
@@ -61,7 +61,7 @@ func GetCurrentWindowPositions() *Arrangement {
 
 			w := Window{
 				NameRegex:         title,
-				NameExlusionRegex: "",
+				NameExclusionRegex: "",
 				X:                 r.Left,
 				Y:                 r.Top,
 				Cx:                r.Right - r.Left,

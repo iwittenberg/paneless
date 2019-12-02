@@ -15,7 +15,7 @@ type Arrangements []Arrangement
 // Window represents a singular application window and it's desired position keyed by a Name Regex.  An exclusion name regex can be used for more fine-grained filtering
 type Window struct {
 	NameRegex         string
-	NameExlusionRegex string
+	NameExclusionRegex string
 	X                 int32
 	Y                 int32
 	Cx                int32
