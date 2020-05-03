@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"os"
 
@@ -13,7 +14,11 @@ func main() {
 }
 
 func onReady() {
-	arrangements, err := NewFromFile("preferences.json")
+	prefsLoc := flag.String("preferences", "preferences.json", "Preferences file path")
+	snapshotLoc := flag.String("snapshot", "snapshot.json", "Snapshot file path")
+	flag.Parse()
+
+	arrangements, err := NewFromFile(*prefsLoc)
 	if err != nil {
 		log.Fatal("Couldnt read from file", err)
 	}
@@ -41,11 +46,11 @@ func onReady() {
 		for {
 			select {
 			case <-file.ClickedCh:
-				openFile("preferences.json")
+				openFile(*prefsLoc)
 			case <-current.ClickedCh:
 				s := Arrangements{*GetCurrentWindowPositions()}
-				s.ToJSONFile("snapshot.json")
-				openFile("snapshot.json")
+				s.ToJSONFile(*snapshotLoc)
+				openFile(*snapshotLoc)
 			case <-quit.ClickedCh:
 				systray.Quit()
 				os.Exit(0)

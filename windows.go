@@ -60,12 +60,12 @@ func GetCurrentWindowPositions() *Arrangement {
 			r := w32.GetWindowRect(hwnd)
 
 			w := Window{
-				NameRegex:         title,
+				NameRegex:          title,
 				NameExclusionRegex: "",
-				X:                 r.Left,
-				Y:                 r.Top,
-				Cx:                r.Right - r.Left,
-				Cy:                r.Bottom - r.Top,
+				X:                  r.Left,
+				Y:                  r.Top,
+				Cx:                 r.Right - r.Left,
+				Cy:                 r.Bottom - r.Top,
 			}
 
 			a.Windows = append(a.Windows, w)
