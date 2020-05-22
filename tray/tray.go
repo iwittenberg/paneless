@@ -16,18 +16,17 @@ var (
 
 // Try represents a system tray menu for an application.
 type Tray struct {
-	handler      handler.Handler
 	arrangements *arrangements.Arrangements
 	prefsLoc     *string
 	snapshotLoc  *string
 }
 
 // GetInstance returns a singleton instance of a Tray.
-func GetInstance(h handler.Handler, a *arrangements.Arrangements, p *string, s *string) (t *Tray) {
+func GetInstance(a *arrangements.Arrangements, p *string, s *string) (t *Tray) {
 	if i == nil {
 		once.Do(
 			func() {
-				i = &Tray{h, a, p, s}
+				i = &Tray{a, p, s}
 			})
 	}
 	return i
@@ -48,7 +47,7 @@ func onReady() {
 		go func(a arrangements.Arrangement) {
 			for {
 				<-item.ClickedCh
-				i.handler.Apply(&a)
+				handler.Apply(&a)
 			}
 		}(a)
 	}
@@ -62,11 +61,11 @@ func onReady() {
 		for {
 			select {
 			case <-file.ClickedCh:
-				i.handler.OpenFile(*i.prefsLoc)
+				handler.OpenFile(*i.prefsLoc)
 			case <-current.ClickedCh:
-				s := arrangements.Arrangements{*i.handler.GetCurrentWindowPositions()}
+				s := arrangements.Arrangements{*handler.GetCurrentWindowPositions()}
 				s.ToJSONFile(*i.snapshotLoc)
-				i.handler.OpenFile(*i.snapshotLoc)
+				handler.OpenFile(*i.snapshotLoc)
 			case <-quit.ClickedCh:
 				systray.Quit()
 				os.Exit(0)

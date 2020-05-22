@@ -18,12 +18,7 @@ func main() {
 		log.Fatal("Couldnt read from file", err)
 	}
 
-	h, err := handler.NewHandler(handler.WINDOWS)
-	if err != nil {
-		log.Fatal("Could not create new handler", err)
-	}
-
-	h.RegisterHotkeys(as)
-	t := tray.GetInstance(h, as, p, s)
+	handler.RegisterHotkeysAndListen(as)
+	t := tray.GetInstance(as, p, s)
 	t.Init()
 }

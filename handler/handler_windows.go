@@ -1,3 +1,5 @@
+// +build windows
+
 package handler
 
 import (
@@ -16,25 +18,15 @@ var (
 	runDll32 = filepath.Join(os.Getenv("SYSTEMROOT"), "System32", "rundll32.exe")
 )
 
-type Windows struct{}
+type Handler struct {}
 
-func setPosition(hwnd w32.HWND, w arrangements.Window) {
-	w32.MoveWindow(
-		hwnd,
-		int(w.X),
-		int(w.Y),
-		int(w.Cx),
-		int(w.Cy),
-		true,
-	)
-}
-
-func (w Windows) OpenFile(file string) {
+// OpenFile uses the default application to open the specified file.
+func OpenFile(file string) {
 	_ = exec.Command(runDll32, cmd, file).Start()
 }
 
 // Apply repositions the currently running windows according to the input arrangements
-func (w Windows) Apply(a *arrangements.Arrangement) {
+func Apply(a *arrangements.Arrangement) {
 	w32.EnumChildWindows(0, func(hwnd w32.HWND, lparam w32.LPARAM) w32.LRESULT {
 		title := w32.GetWindowText(hwnd)
 		for _, w := range a.Windows {
@@ -46,7 +38,14 @@ func (w Windows) Apply(a *arrangements.Arrangement) {
 			}
 
 			if match && !negativeMatch {
-				setPosition(hwnd, w)
+				w32.MoveWindow(
+					hwnd,
+					int(w.X),
+					int(w.Y),
+					int(w.Cx),
+					int(w.Cy),
+					true,
+				)
 			}
 		}
 		return 1
@@ -54,7 +53,7 @@ func (w Windows) Apply(a *arrangements.Arrangement) {
 }
 
 // GetCurrentWindowPositions returns a pointer to a WindowPreferences struct representing the current layout of all windows.
-func (w Windows) GetCurrentWindowPositions() *arrangements.Arrangement {
+func GetCurrentWindowPositions() *arrangements.Arrangement {
 	a := new(arrangements.Arrangement)
 	a.Name = "current"
 	a.Windows = make([]arrangements.Window, 0, 10)
@@ -88,7 +87,8 @@ const (
 	ModWin
 )
 
-func (w Windows) RegisterHotkeys(as *arrangements.Arrangements) {
+// RegisterHokeysAndListen assigns a hotkey for each arrangement and begins listening for their activation.
+func RegisterHotkeysAndListen(as *arrangements.Arrangements) {
 	go func() {
 		for i, _ := range *as {
 			if i >= 9 {
@@ -106,7 +106,7 @@ func (w Windows) RegisterHotkeys(as *arrangements.Arrangements) {
 			w32.GetMessage(msg, 0, 0, 0)
 			// Registered id is in the WPARAM field:
 			if id := msg.WParam; id != 0 {
-				w.Apply(&(*as)[id - 1])
+				Apply(&(*as)[id - 1])
 			}
 		}
 	}()
