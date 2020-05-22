@@ -2,59 +2,28 @@ package main
 
 import (
 	"flag"
+	"github.com/iwittenberg/paneless/arrangements"
+	"github.com/iwittenberg/paneless/handler"
+	"github.com/iwittenberg/paneless/tray"
 	"log"
-	"os"
-
-	"github.com/getlantern/systray"
-	"github.com/iwittenberg/paneless/icon"
 )
 
 func main() {
-	systray.Run(onReady, nil)
-}
-
-func onReady() {
-	prefsLoc := flag.String("preferences", "preferences.json", "Preferences file path")
-	snapshotLoc := flag.String("snapshot", "snapshot.json", "Snapshot file path")
+	p := flag.String("preferences", "preferences.json", "Preferences file path")
+	s := flag.String("snapshot", "snapshot.json", "Snapshot file path")
 	flag.Parse()
 
-	arrangements, err := NewFromFile(*prefsLoc)
+	as, err := arrangements.NewFromFile(*p)
 	if err != nil {
 		log.Fatal("Couldnt read from file", err)
 	}
 
-	systray.SetIcon(icon.Data)
-	systray.SetTitle("Rearrange")
-	systray.SetTooltip("Better Rearrangement Tool")
-
-	for _, a := range *arrangements {
-		item := systray.AddMenuItem(a.Name, "Rearrange the windows according to this preference")
-		go func(a Arrangement) {
-			for {
-				<-item.ClickedCh
-				a.Apply()
-			}
-		}(a)
+	h, err := handler.NewHandler(handler.WINDOWS)
+	if err != nil {
+		log.Fatal("Could not create new handler", err)
 	}
 
-	systray.AddSeparator()
-	current := systray.AddMenuItem("Get Snapshop", "Get a snapshop of the current positions of all windows")
-	file := systray.AddMenuItem("Open Preferences", "Open the current preferences file")
-	quit := systray.AddMenuItem("Quit", "Quit the whole app")
-
-	go func() {
-		for {
-			select {
-			case <-file.ClickedCh:
-				openFile(*prefsLoc)
-			case <-current.ClickedCh:
-				s := Arrangements{*GetCurrentWindowPositions()}
-				s.ToJSONFile(*snapshotLoc)
-				openFile(*snapshotLoc)
-			case <-quit.ClickedCh:
-				systray.Quit()
-				os.Exit(0)
-			}
-		}
-	}()
+	h.RegisterHotkeys(as)
+	t := tray.GetInstance(h, as, p, s)
+	t.Init()
 }

@@ -1,6 +1,8 @@
-package main
+package arrangements
 
-import "io/ioutil"
+import (
+	"io/ioutil"
+)
 import "encoding/json"
 
 // Arrangement represent a named preconfigured layout containing a []Window.
@@ -14,12 +16,12 @@ type Arrangements []Arrangement
 
 // Window represents a singular application window and it's desired position keyed by a Name Regex.  An exclusion name regex can be used for more fine-grained filtering
 type Window struct {
-	NameRegex         string
+	NameRegex          string
 	NameExclusionRegex string
-	X                 int32
-	Y                 int32
-	Cx                int32
-	Cy                int32
+	X                  int32
+	Y                  int32
+	Cx                 int32
+	Cy                 int32
 }
 
 // ToJSONFile writes a *[]WindowPreferences to the input file name, creating it if it doesn't exist.
